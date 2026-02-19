@@ -1,26 +1,33 @@
-require('dotenv').config();
-const express = require('express');
-const connectDB = require('./config/database');
-const authRoutes = require('./routes/authRoutes');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import authRoutes from './auth/auth.routes.js';
+import opinionRoutes from './opinion/opinion.routes.js';
 
 
-const app = express();
+export const createApp = () => {
+    const app = express();
 
-// Conectar base de datos
-connectDB();
+    // Middlewares globales
+    app.use(express.json());
+    app.use(cors());
+    app.use(helmet());
+    app.use(morgan('dev'));
+    
 
-// Middlewares
-app.use(express.json());
-app.use('/api/auth', authRoutes);
+    // Rutas
+    app.use('/api/auth', authRoutes);
+    app.use('/api/opinions', opinionRoutes);
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.json({ message: 'Servidor funcionando correctamente' });
-});
 
-// Puerto
-const PORT = process.env.PORT || 3000;
+    // Health check
+    app.get('/health', (req, res) => {
+        res.status(200).json({
+            status: 'Healthy',
+            timestamp: new Date().toISOString()
+        });
+    });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+    return app;
+};
